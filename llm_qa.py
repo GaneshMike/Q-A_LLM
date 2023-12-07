@@ -103,6 +103,90 @@ paragraphs = extract_paragraphs(pdf_path, chunk_size)
 
 paragraphs[5]
 
+import json
+
+data = [
+    {
+        "context": "Wealth Management Chief Investment Office16 December 20220utlook 2023Playing itSAFEIN 2023, we expect recessions in",
+        "params": {
+            "temperature": 0.3,
+            "top_k": 50,
+            "top_p": 1.0,
+            "max_new_tokens": 1000
+        },
+        "qna": {
+            "question": "What is the macroeconomic outlook for 2023?",
+            "answer": "In 2023, we expect recessions in the US and Europe, a recovery in China, a slowdown in global inflation, and a pause in Fed rates in 2023."
+        },
+        "page_no": 1
+    },
+    {
+        "context": "Wealth Management Chief Investment Office16 December 20220utlook 2023Playing itSAFEIN 2023, we expect recessions in",
+        "params": {
+            "temperature": 0.3,
+            "top_k": 50,
+            "top_p": 1.0,
+            "max_new_tokens": 1000
+        },
+        "qna": {
+            "question": "What is the macroeconomic outlook for 2023?",
+            "answer": "In 2023, we expect recessions in the US and Europe, a recovery in China, a slowdown in global inflation, and a pause in Fed rates in 2023."
+        },
+        "page_no": 2
+    }
+]
+
+output = {
+    "ADP_output": [
+        {
+            "pdf_file": "file1.pdf",
+            "params": {},
+            "pdf_info": []
+        }
+    ]
+}
+
+for item in data:
+    page_no = item["page_no"]
+    context = item["context"]
+    question = item["qna"]["question"]
+    answer = item["qna"]["answer"]
+    params = item["params"]
+
+    page_info = {
+        "context": context,
+        "Q&A": [
+            {
+                "question": question,
+                "answer": answer
+            }
+        ]
+    }
+
+    # Find existing pdf_info or create a new one
+    pdf_info = None
+    for pdf in output["ADP_output"][0]["pdf_info"]:
+        if pdf["page_no"] == page_no:
+            pdf_info = pdf
+            break
+
+    if pdf_info:
+        pdf_info["page_info"].append(page_info)
+    else:
+        pdf_info = {
+            "page_no": page_no,
+            "page_info": [page_info]
+        }
+        output["ADP_output"][0]["pdf_info"].append(pdf_info)
+
+    # Update params details
+    pdf_params = output["ADP_output"][0]["params"]
+    pdf_params.update(params)
+
+# Convert the output to JSON
+output_json = json.dumps(output, indent=4)
+print(output_json)
+
 
 
 
