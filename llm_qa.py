@@ -65,42 +65,44 @@ if __name__ == "__main__":
     main()
 
 
-
-import PyPDF2
+import fitz
 import pandas as pd
- 
 
-def extract_paragraphs_from_pdf(pdf_path, chunk_size):
-    data = {'Page': [], 'Paragraph': []}
-    
-    with open(pdf_path, 'rb') as pdf_file:
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        total_pages = len(pdf_reader.pages)
+def extract_paragraphs(pdf_path, chunk_size):
+    doc = fitz.open(pdf_path)
+    paragraphs = []
+ 
+    for page_num in range(doc.page_count):
+        page = doc[page_num]
+        text = page.get_text()
         
-        for page_num in range(total_pages):
-            page = pdf_reader.pages[page_num]
-            text = page.extract_text()
+        # Split text into paragraphs based on your criteria
+        current_position = 0
+        while current_position < len(text):
+            end_position = min(current_position + chunk_size, len(text))
+            paragraph = text[current_position:end_position]
             
-            # Split text into paragraphs based on chunk size
-            paragraphs = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
-            
-            # Store page number and paragraphs in the data dictionary
-            data['Page'].extend([page_num + 1] * len(paragraphs))
-            data['Paragraph'].extend(paragraphs)
-    
-    return data
+            # Ensure the paragraph ends with a meaningful delimiter (e.g., period)
+            while end_position < len(text) and not paragraph.endswith(('.', '!', '?')):
+                end_position += 1
+                paragraph = text[current_position:end_position]
  
-def save_to_excel(data, excel_path):
-    df = pd.DataFrame(data)
-    df.to_excel(excel_path, index=False)
+            paragraphs.append(paragraph.strip())
+            current_position = end_position
  
+    doc.close()
+    return paragraphs
+
+
 # Example usage
 pdf_path = r"C:\Users\1590530\Downloads\banking-approach-2012.pdf"
 chunk_size = 500  # Adjust the chunk size as needed
 excel_path = 'output.xlsx'
  
-data = extract_paragraphs_from_pdf(pdf_path, chunk_size)
-save_to_excel(data, excel_path)
+paragraphs = extract_paragraphs(pdf_path, chunk_size)
+
+paragraphs[5]
+
 
 
 
