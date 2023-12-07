@@ -63,3 +63,46 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+import PyPDF2
+import pandas as pd
+ 
+
+def extract_paragraphs_from_pdf(pdf_path, chunk_size):
+    data = {'Page': [], 'Paragraph': []}
+    
+    with open(pdf_path, 'rb') as pdf_file:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        total_pages = len(pdf_reader.pages)
+        
+        for page_num in range(total_pages):
+            page = pdf_reader.pages[page_num]
+            text = page.extract_text()
+            
+            # Split text into paragraphs based on chunk size
+            paragraphs = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+            
+            # Store page number and paragraphs in the data dictionary
+            data['Page'].extend([page_num + 1] * len(paragraphs))
+            data['Paragraph'].extend(paragraphs)
+    
+    return data
+ 
+def save_to_excel(data, excel_path):
+    df = pd.DataFrame(data)
+    df.to_excel(excel_path, index=False)
+ 
+# Example usage
+pdf_path = r"C:\Users\1590530\Downloads\banking-approach-2012.pdf"
+chunk_size = 500  # Adjust the chunk size as needed
+excel_path = 'output.xlsx'
+ 
+data = extract_paragraphs_from_pdf(pdf_path, chunk_size)
+save_to_excel(data, excel_path)
+
+
+
+
+
